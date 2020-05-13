@@ -1,0 +1,34 @@
+version: "3.7"
+
+services:
+  minecraft:
+    image: cryowatt/minecraft:1.14.60.5
+    build:
+      context: .
+      target: server
+      args:
+        MINECRAFT_VERSION: "1.14.60.5"
+    ports: 
+      - "29132:19132/udp"
+      - "29133:19133/udp"
+    volumes:
+      - config:/var/minecraft/
+      - minecraft:/opt/minecraft/worlds
+
+
+  # minecraft-windows:
+  #   image: cryowatt/minecraft
+  #   build:
+  #     context: .
+  #     target: server
+  #     args:
+  #       MINECRAFT_VERSION: "1.14.60.5"
+  #   ports: 
+  #     - "19132:19132/tcp"
+  #     - "19132:19132/udp"
+  #     - "19133:19133/tcp"
+  #     - "19133:19133/udp"
+
+volumes:
+  config:
+  minecraft:

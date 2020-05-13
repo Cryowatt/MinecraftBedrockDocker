@@ -1,0 +1,109 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "saves_storage_account_name": {
+            "type": "String"
+        },
+        "saves_storage_account_key": {
+            "type": "String"
+        },
+        "log_analytics_workspace_id": {
+            "type": "String"
+        },
+        "log_analytics_workspace_key": {
+            "type": "String"
+        },
+        "server_container_name": {
+            "defaultValue": "hahncraft",
+            "type": "String"
+        },
+        "minecraft_version": {
+            "defaultValue": "1.14.60.5",
+            "type": "String"
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[parameters('server_container_name')]",
+            "location": "westus2",
+            "properties": {
+                "containers": [
+                    {
+                        "name": "hahncraft",
+                        "properties": {
+                            "image": "[concat('cryowatt/minecraft:', parameters('minecraft_version'))]",
+                            "ports": [
+                                {
+                                    "protocol": "UDP",
+                                    "port": 19132
+                                }
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "name": "minecraftconfig",
+                                    "mountPath": "/var/minecraft/"
+                                },
+                                {
+                                    "name": "minecraftsaves",
+                                    "mountPath": "/opt/minecraft/worlds"
+                                }
+                            ],
+                            "environmentVariables": [
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            },
+                            "command": [
+                                "bedrock_server"
+                            ]
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "UDP",
+                            "port": 19132
+                        }
+                    ],
+                    "type": "Public",
+                    "dnsNameLabel": "[parameters('server_container_name')]"
+                },
+                "osType": "Linux",
+                "diagnostics": {
+                    "logAnalytics": {
+                        "workspaceId": "[parameters('log_analytics_workspace_id')]",
+                        "workspaceKey": "[parameters('log_analytics_workspace_key')]"
+                    }
+                },
+                "volumes": [
+                    {
+                        "name": "minecraftconfig",
+                        "azureFile": {
+                            "shareName": "minecraftconfig",
+                            "storageAccountName": "[parameters('saves_storage_account_name')]",
+                            "storageAccountKey": "[parameters('saves_storage_account_key')]"
+                        }
+                    },
+                    {
+                        "name": "minecraftsaves",
+                        "azureFile": {
+                            "shareName": "minecraftsaves",
+                            "storageAccountName": "[parameters('saves_storage_account_name')]",
+                            "storageAccountKey": "[parameters('saves_storage_account_key')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
